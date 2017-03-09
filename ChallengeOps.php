@@ -8,6 +8,9 @@ $bonuses = array('B00001', 'B00002', 'B00003', 'B00004', 'B00005',
     'B00006', 'B00007', 'B00008', 'B00009');
 $rooms = array('r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r17', 'r18', 'r19', 'r20');
 
+
+
+
 //Check the current challenge completed, if yes - move top users to 
 //prev challenge collection, clear current challenfge collection
 //and start new challenge
