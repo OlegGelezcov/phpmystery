@@ -38,7 +38,7 @@ $tools = array('T0001', 'T0002', 'T0005', 'T0006', 'T0008', 'T0009');
 $bonuses = array('B00001', 'B00002', 'B00003', 'B00004', 'B00005',
     'B00006', 'B00007', 'B00008', 'B00009');
 $rooms = array('r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r17', 'r18', 'r19', 'r20');
-$CHALLENGE_INERVAL = 100;
+$CHALLENGE_INERVAL = 86400;
 $MAX_TOP_USERS = 50;
 
 
@@ -176,7 +176,7 @@ foreach($cursor as $id => $value ) {
     var_dump($value);
 }*/
 //when challenge completed make copying current top 50 users with their ranks to prev users collection
-function copy_current_challenge_to_prev($current_challenge_collection, $prev_challenge_collection ) {
+function copy_current_challenge_to_prev($current_challenge_collection, $prev_challenge_collection) {
     global $MAX_TOP_USERS;
     $prev_challenge_collection->remove();
     $cursor = $current_challenge_collection->find();
@@ -190,6 +190,8 @@ function copy_current_challenge_to_prev($current_challenge_collection, $prev_cha
         $i++;
         $prev_challenge_collection->insert($value);
     }
+    
+    
     
     $current_challenge_collection->remove();
 }
@@ -256,7 +258,7 @@ function write_user_points($current_challenge_collection, $id, $name, $avatar, $
     $user_obj = $current_challenge_collection->findOne($query);
     if($user_obj) {
         $user_obj['name'] = $name;
-        $user_obj['avatar'] = intval($avatar);
+        $user_obj['avatar'] = $avatar;
         $user_obj['points'] = intval($points);
         $user_obj['rewarded'] = 0;
         $current_challenge_collection->save($user_obj);
@@ -264,7 +266,7 @@ function write_user_points($current_challenge_collection, $id, $name, $avatar, $
         $new_user_arr = array(
             'id' => $id,
             'name' => $name,
-            'avatar' => intval($avatar),
+            'avatar' => $avatar,
             'points' => intval($points),
             'rewarded' => 0,
             'rank' => 0
@@ -284,7 +286,7 @@ function read_user($current_challenge_collection, $id, $name, $avatar) {
         $user_obj['rank'] = ($count + 1);
         return $user_obj;
     } else {
-        $usr = array('id' => $id, 'name' => $name, 'avatar' => intval($avatar),
+        $usr = array('id' => $id, 'name' => $name, 'avatar' => $avatar,
             'points' => 0, 'rewarded' => 0, 'rank' => 0);
         $current_challenge_collection->insert($usr);
         $user_obj2 = $current_challenge_collection->findOne($query);
@@ -422,7 +424,7 @@ function handle_op($source) {
     
     $id = '';
     $name = '';
-    $avatar = 0;
+    $avatar = '';
     $points = 0;
     $op = '';
     if(isset($source['op'])) {
@@ -445,13 +447,13 @@ function handle_op($source) {
     
     switch ($op) {
         case 'read_full':
-            read_full($challenge_info_collection, $current_challenge_collection, $prev_challenge_collection, $id, $name, intval($avatar));
+            read_full($challenge_info_collection, $current_challenge_collection, $prev_challenge_collection, $id, $name, $avatar);
             break;
         case 'write_points':
-            write_user_points($current_challenge_collection, $id, $name, intval($avatar), intval($points));
+            write_user_points($current_challenge_collection, $id, $name, $avatar, intval($points));
             break;
         case 'take_reward':
-            take_reward($prev_challenge_collection, $id);
+            echo take_reward($prev_challenge_collection, $id);
             break;
     }
 }
@@ -475,10 +477,10 @@ $challenge_info_collection = $db->challenge_info_collection;
 $current_challenge_collection = $db->current_challenge_collection;
 $prev_challenge_collection = $db->prev_challenge_collection;
 
-$usr_1 = array('id' => 'usr1', 'name' => 'Oleg', 'avatar' => 0, 'points' => 10);
-$usr_2 = array('id' => 'usr2', 'name' => 'Vasya', 'avatar' => 1, 'points' => 50);
-$usr_3 = array('id' => 'usr3', 'name' => 'John', 'avatar' => 2, 'points' => 30);
-$usr_4 = array('id' => 'usr4', 'name' => 'Mark', 'avatar' => 3, 'points' => 40);
+$usr_1 = array('id' => 'usr1', 'name' => 'Oleg', 'avatar' => 'AVA01', 'points' => 10);
+$usr_2 = array('id' => 'usr2', 'name' => 'Vasya', 'avatar' => 'AVA02', 'points' => 50);
+$usr_3 = array('id' => 'usr3', 'name' => 'John', 'avatar' => 'AVA03', 'points' => 30);
+$usr_4 = array('id' => 'usr4', 'name' => 'Mark', 'avatar' => 'AVA04', 'points' => 40);
 
 
 write_user_points($current_challenge_collection, $usr_1['id'], $usr_1['name'], $usr_1['avatar'], $usr_1['points']);
@@ -487,14 +489,9 @@ write_user_points($current_challenge_collection, $usr_3['id'], $usr_3['name'], $
 write_user_points($current_challenge_collection, $usr_4['id'], $usr_4['name'], $usr_4['avatar'], $usr_4['points']);
 
 
-//read_full($challenge_info_collection, $current_challenge_collection, $prev_challenge_collection, 'usr1', 'Vasya', 2);
-*/
+read_full($challenge_info_collection, $current_challenge_collection, $prev_challenge_collection, 'usr1', 'Vasya', 2);
 
-//$_POST['op'] = 'read_full';
-//$_POST['id'] = 'usr1';
-//$_POST['name'] = 'abc';
-//$_POST['avatar'] = 0;
-//$_POST['points'] = 34;
+*/
 challenge_op();
 
 ?>
