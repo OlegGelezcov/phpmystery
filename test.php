@@ -56,6 +56,12 @@ foreach($cursor as $id => $value ) {
     var_dump($value);
 }*/
 
-echo time();
+//echo time();
+
+$test_arr = array('a' => 1, 'b' => 2);
+$test_arr['c'] = 3;
+var_dump($test_arr);
+$test_arr['a'] = 333;
+var_dump($test_arr);
 
 ?>

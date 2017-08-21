@@ -1,5 +1,10 @@
 <?php
 
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Headers: Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Origin: *");
+
 require_once 'Friend.php';
 require_once 'UserOps.php';
 
@@ -12,6 +17,8 @@ function get_friends(MongoCollection $friend_collection, MongoCollection $user_c
         $new_friend_user = new Friend();
         $new_friend_user->id = $id;
         $document = $new_friend_user->to_document();
+        //$document['time'] = time();
+        
         $friend_collection->insert($document);
         return $document;
     } else {
@@ -39,6 +46,10 @@ function get_friends(MongoCollection $friend_collection, MongoCollection $user_c
             }
         }
         $friend->wishes = $wishes;
+        
+        //Update friend access time
+        //$friend_obj['time'] = time();
+        //$friend_collection->save($friend_obj);
         
         $result = array('id' => $friend->id, 'friends' => $friend_obj_arr, 'wishes' => $wishes);
         return $result;
@@ -92,6 +103,7 @@ function add_friend($first_id, $second_id ) {
     
     
     $first_friend_obj = read_friend_object($friend_collection, $first_id);
+    $first_friend_obj['time'] = time();
     
     $second_friend_obj = read_friend_object($friend_collection, $second_id);
     

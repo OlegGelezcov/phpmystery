@@ -11,9 +11,10 @@ class User {
     public $name = '';
     public $avatar = '';
     public $level = 1;
-    
+    public $time = 0;
+            
     function to_document() {
-        $document = array('id' => $this->id, 'name' => $this->name, 'avatar' => $this->avatar, 'level' => $this->level);
+        $document = array('id' => $this->id, 'name' => $this->name, 'avatar' => $this->avatar, 'level' => $this->level, 'time' => $this->time );
         return $document;
     }
     
@@ -29,6 +30,9 @@ class User {
         }
         if(isset($document['level'])) {
             $this->level = intval($document['level']);
+        }
+        if(isset($document['time'])) {
+            $this->time = intval($document['time']);
         }
     }
 }

@@ -1,5 +1,10 @@
 <?php
 
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Headers: Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Origin: *");
+
 /*
 collections
 
@@ -31,13 +36,16 @@ prev_challenge
 
 $challenge_ids = array('kill_monster', 'got_exp', 'complete_room',
     'collect_silver', 'collect_gold', 'charge_collections', 'use_energy', 'complete_quest',
-    'use_tool', 'use_bonus', 'make_purchase', 'roll');
+    'use_tool', 'use_bonus', 'make_purchase', 'roll', 'send_gift', 'take_achievment',
+    'enter_cave', 'kill_cave_monster', 'add_friend', 'enter_sorc_room', 'enter_cript',
+    'enter_north_pole');
+
 $monsters = array('NPC01', 'NPC02', 'NPC03', 'NPC04', 'NPC05',
         'NPC06', 'NPC07', 'NPC08', 'NPC09', 'NPC10');
 $tools = array('T0001', 'T0002', 'T0005', 'T0006', 'T0008', 'T0009');
 $bonuses = array('B00001', 'B00002', 'B00003', 'B00004', 'B00005',
     'B00006', 'B00007', 'B00008', 'B00009');
-$rooms = array('r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r17', 'r18', 'r19', 'r20');
+$rooms = array('r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r17', 'r18', 'r19', 'r20', 'r21', 'r22', 'r23', 'r24', 'r25');
 $CHALLENGE_INERVAL = 86400;
 $MAX_TOP_USERS = 50;
 

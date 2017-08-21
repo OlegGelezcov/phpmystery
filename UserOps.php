@@ -1,5 +1,10 @@
 <?php
 
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Headers: Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Origin: *");
+
 /* 
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -47,11 +52,14 @@ function write_user_to_db(User $user) {
        $user_in_db['name'] = $user->name;
        $user_in_db['avatar'] = $user->avatar;
        $user_in_db['level'] = $user->level;
+       $user_in_db['time'] = time();
        $collection->save($user_in_db);
        //echo 'save: ';
        //var_dump($user_in_db);
     } else {
-        $collection->insert($user->to_document());
+        $doc = $user->to_document();
+        $doc['time'] = time();
+        $collection->insert($doc);
         //echo 'insert: ';
         //var_dump($user->to_document());
     }
