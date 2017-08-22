@@ -1,10 +1,4 @@
 <?php
-
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Headers: Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time");
 header("Access-Control-Allow-Metfhods: GET, POST, OPTIONS");
@@ -14,12 +8,6 @@ $DEFAULT_INTERVAL = 604800;
 $DEFAULT_REWARD_COUNT = 50;
 $DEFAULT_HP = 10000;
 
-/*
-
- * Write base info about dragon event in database
- * interval - interval of event
- * reward_count - min stone count for getting reward
- * dragon_hp - max hp of dragon before killing */
 function write_event_info($event_collection, $interval, $reward_count, $dragon_hp){
     $info_obj = $event_collection->findOne();
     if($info_obj) {
@@ -32,7 +20,7 @@ function write_event_info($event_collection, $interval, $reward_count, $dragon_h
         if(!isset($info_obj['rewarded'])) {
             $info_obj['rewarded'] = 0;
         }
-        $info_obj['current_hp'] = $dragon_hp;
+        $info_obj['current_hp'] = 0;
         if(!isset($info_obj['check_time'])) {
             $info_obj['check_time'] = 0;
         }
@@ -43,7 +31,7 @@ function write_event_info($event_collection, $interval, $reward_count, $dragon_h
             'reward_count' => $reward_count,
             'hp' => $dragon_hp,
             'end_time' => 0,
-            'current_hp' => $dragon_hp,
+            'current_hp' => 0,
             'rewarded' => 0,
             'check_time' => 0,
             'time' => time());
@@ -52,10 +40,6 @@ function write_event_info($event_collection, $interval, $reward_count, $dragon_h
     return $info_obj;
 }
 
-
-/*
-
- * Call to start dragon event with optinal parameters for setup */
 function start_event($event_collection, $users_collection , $interval = 604800, $reward_count = 50, $hp = 10000){
     $info_obj = $event_collection->findOne();
     if($info_obj) {
@@ -63,7 +47,7 @@ function start_event($event_collection, $users_collection , $interval = 604800, 
         $info_obj['reward_count'] = $reward_count;
         $info_obj['hp'] = $hp;
         $info_obj['end_time'] = time() + $info_obj['interval'];
-        $info_obj['current_hp'] = $info_obj['hp'];
+        $info_obj['current_hp'] = 0;
         $info_obj['rewarded'] = 0;
         $info_obj['start_time'] = time();
         $info_obj['check_time'] = 0;
@@ -78,7 +62,7 @@ function start_event($event_collection, $users_collection , $interval = 604800, 
         $info_obj = $event_collection->findOne();
         if($info_obj) {
             $info_obj['end_time'] = time() + $info_obj['interval'];
-            $info_obj['current_hp'] = $info_obj['hp'];
+            $info_obj['current_hp'] = 0;
             $info_obj['rewarded'] = 0;
             $info_obj['start_time'] = time();
             $info_obj['check_time'] = 0;
@@ -145,9 +129,9 @@ function make_hit($event_info, $event_collection, $users_collection, $user_id, $
         $stones = intval($user_obj['stones']);
         if($stones > 0 ) {
 
-            $event_info['current_hp'] = intval($event_info['current_hp']) - 1;
+            $event_info['current_hp'] = intval($event_info['current_hp']) + 1;
             $event_collection->save($event_info);
-            //$edump = $event_collection->findOne();
+            $edump = $event_collection->findOne();
             //echo json_encode($edump);
             
             $user_obj['stones'] = $stones - 1;
@@ -208,8 +192,6 @@ function get_prev_top_users($prev_users_collection) {
     return $result;
 }
 
-
-
 function get_event_state_for_user($event_info, $event_collection, $users_collection, $prev_users_collection,  $user_id, $avatar, $name, $level) {
     
     $result = array();
@@ -245,11 +227,11 @@ function is_event_expired($info_obj) {
 }
 
 function is_dragon_killed($info_obj) {
-    return intval($info_obj['current_hp']) <= 0;
+    return intval($info_obj['current_hp']) >= intval($info_obj['hp']);
 }
 
 function is_dragon_alive($info_obj) {
-    return intval($info_obj['current_hp']) > 0;
+    return intval($info_obj['current_hp']) < intval($info_obj['hp']);
 }
 
 function is_event_not_rewarded($info_obj) {
@@ -306,114 +288,53 @@ function check_event($event_info, $event_collection, $users_collection, $prev_us
     $check_interval = time() - $check_time;
     if($check_interval >= 10 ) {
         $event_info['check_time'] = time();
-        //echo 'CHECK: INTERVAL READY, START CHECKING...\n';
+        //echo 'checking...\n';
         
         if (is_event_expired($event_info)) {
-                //echo 'CHECK: EVENT EXPIRED...\n';
+                //echo 'event expired...\n';
                 
                 if (is_event_not_rewarded($event_info)) {
-                    //echo 'CHECK: EVENT EXPIRED BUT NOT REWARDED...MOVE USERS TO PREV AND MAKE EVENT REWARDED\n';
+                    //echo 'event not rewarded...\n';
                     $prev_users_collection->remove();
 
                     move_users_to_prev_collection($event_info, $event_collection, $users_collection, $prev_users_collection);
                     make_event_rewarded($event_info, $event_collection, $users_collection);
                 } else {
-                    //echo 'CHECK: EVENT EXPIRED AND REWARDED.. DO NOTHING\n';
                     $event_collection->save($event_info);
                 }
         } else {
-            //echo 'CHECK: EVENT NOT EXPIRED...\n';
+            //echo 'event not expired...\n';
             
             if (is_event_not_rewarded($event_info)) {
-                //echo 'CHECK: EVENT NOT EXPIRED AND NOT REWARDED...\n';
+                //echo 'event not rewarded...\n';
                 
                 if (is_dragon_killed($event_info)) {
-                    //echo 'CHECK: EVENT NOT EXPIRED AND NOT REWARDED AND DRAGON KILLED..MOVE USERS TO PREV COLLECTIONS AND MAKE EVENT REWARDED\n';
+                    //echo 'is dragon killed...=> move to prev collection...\n';
                     $prev_users_collection->remove();
                     move_users_to_prev_collection($event_info, $event_collection, $users_collection, $prev_users_collection);
                     make_event_rewarded($event_info, $event_collection, $users_collection);
                 } else {
-                    //echo 'CHECK: EVENT NOT EXPIRED AND NOT REWARDED BUT DRAGON NOT KILLED...DO NOTHING\n';
                     $event_collection->save($event_info);
                 }
             } else {
-                //echo 'CHECK: EVENT NOT EXPIRED BUT REWARDED...DO NOTHING\n';
                 $event_collection->save($event_info);
             }
         } 
     } else {
-        //echo 'CHECK: INTERVAL NOT READY...\n';
+        //echo 'check interval not ready';
     }
 }
 
-
-function ftest($event_collection, $users_collection, $prev_users_collection) {
-    $event_info = start_event($event_collection, $users_collection, 120, 2, 20);
-    echo 'event after starting...\n';
-    echo json_encode($event_info);
-    
-    echo 'add stones to users...\n';
-    $users = array();
-    for($i = 0; $i < 10; $i++ ) {
-        $user = add_stones($event_info, $event_collection, $users_collection, uniqid(), 'AVA01', 'USER_' . $i, $i, rand(30, 40));
-        echo json_encode($user) . '\n';
-        $users[] = $user;
-    }
-    
-    echo 'MAKE HITS....\n';
-    $dragon_hp = $event_info['hp'];
-    for($i = 0; $i < $dragon_hp; $i++) {
-        $random_user = $users[rand(0, count($users) - 1)];
-        $event_info = $event_collection->findOne();
-        $result = make_hit($event_info, $event_collection, $users_collection, 
-                $random_user['id'], $random_user['avatar'], $random_user['name'], intval($random_user['level']), intval($random_user['stones']));
-        echo 'hit result...\n';
-        echo json_encode($result) . '\n';
-    }
-    
-    echo 'event info after hits...\n';
-    echo json_encode($event_info);
-}
-
-function fcheck($event_info, $event_collection, $users_collection, $prev_users_collection) {
-    check_event($event_info, $event_collection, $users_collection, $prev_users_collection);
-}
-
-function ftakereward($event_info, $prev_users_collection) {
-    $user = $prev_users_collection->findOne();
-    echo take_reward($event_info, $prev_users_collection, $user['id']);
-}
-
-//echo json_encode(write_event_info($collection, 604800, 50, 10000));
-//start_event($collection);
-//function write_event_info($event_collection, $interval, $reward_count, $dragon_hp)
-//function start_event($event_collection, $interval = 604800, $reward_count = 50, $hp = 10000)
-//function add_stones($event_info, $event_collection, $users_collection, $user_id, $avatar, $name, $level, $stones )
-//function make_hit($event_info, $event_collection, $users_collection, $user_id, $avatar, $name, $level, $stones)
 
 function handle_op($source) {
     $op_name = $source['op'];
     $client = new MongoClient();
     $db = $client->mc;
-    $event_collection = $db->dragon;
-    $users_collection = $db->dragon_users;
-    $prev_users_collection = $db->prev_dragon_users;
+    $event_collection = $db->unicorn;
+    $users_collection = $db->unicorn_users;
+    $prev_users_collection = $db->prev_unicorn_users;
     
     switch ($op_name){
-        case 'ftakereward': {
-                $event_info = $event_collection->findOne();
-                ftakereward($event_info, $prev_users_collection);
-                break;
-        }
-        case 'test': {
-                ftest($event_collection, $users_collection, $prev_users_collection);
-                break;
-        }
-        case 'check': {
-                $event_info = $event_collection->findOne();
-                fcheck($event_info, $event_collection, $users_collection, $prev_users_collection);
-                break;
-        }
         case 'write_event': {
                 $event_info = write_event_info($event_collection, intval($source['interval']), intval($source['reward_count']), intval($source['hp']));
                 check_event($event_info, $event_collection, $users_collection, $prev_users_collection);
